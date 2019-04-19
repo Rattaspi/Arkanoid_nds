@@ -23,8 +23,8 @@ TARGET   := $(shell basename $(CURDIR))
 BUILD    := build
 SOURCES  := source
 INCLUDES := include
-DATA     := data
-GRAPHICS :=
+DATA     :=
+GRAPHICS := gfx
 AUDIO    :=
 ICON     :=
 
@@ -119,14 +119,9 @@ else
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES_BIN   :=	$(addsuffix .o,$(BINFILES))
-
-export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-
-export OFILES := $(PNGFILES:.png=.o) $(OFILES_BIN) $(OFILES_SOURCES)
-
-export HFILES := $(PNGFILES:.png=.h) $(addsuffix .h,$(subst .,_,$(BINFILES)))
-
+export OFILES   := $(addsuffix .o,$(BINFILES))\
+                   $(PNGFILES:.png=.o)\
+                   $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 export INCLUDE  := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir))\
                    $(foreach dir,$(LIBDIRS),-I$(dir)/include)\
                    -I$(CURDIR)/$(BUILD)
@@ -155,7 +150,7 @@ endif
 #---------------------------------------------------------------------------------
 $(BUILD):
 	@mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
@@ -171,9 +166,6 @@ else
 $(OUTPUT).nds: $(OUTPUT).elf $(GAME_ICON)
 $(OUTPUT).elf: $(OFILES)
 
-# source files depend on generated headers
-$(OFILES_SOURCES) : $(HFILES)
-
 # need to build soundbank first
 $(OFILES): $(SOUNDBANK)
 
@@ -185,16 +177,10 @@ $(SOUNDBANK) : $(MODFILES)
 	mmutil $^ -d -o$@ -hsoundbank.h
 
 #---------------------------------------------------------------------------------
-%.bin.o %_bin.h : %.bin
+%.bin.o: %.bin
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
-	@$(bin2o)
-
-#---------------------------------------------------------------------------------
-%.pcx.o %_pcx.h : %.pcx
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
+	$(bin2o)
 
 #---------------------------------------------------------------------------------
 # This rule creates assembly source files using grit
