@@ -1,4 +1,5 @@
 #include <nds.h>
+#include <stdio.h>
 
 //image includes
 #include "tilemap.h"
@@ -12,10 +13,18 @@ const int DMA_CHANNEL = 3;
 int main () {
 	//https://patater.com/files/projects/manual/manual.html
 	Init();
+	printf("Boiiii");
 	return 0;
 }
 
 void Init(){
+	powerOn(POWER_ALL_2D);
+	videoSetMode(MODE_5_2D);
+	vramSetBankA(VRAM_A_MAIN_BG);
+
+	int bg3 = bgInit(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
+
+	/*
 	powerOn(POWER_ALL_2D);
 	//lcdMainOnBottom();
 
@@ -39,6 +48,7 @@ void Init(){
 	dmaCopyHalfWords(DMA_CHANNEL, starsBitmap, (uint16*) BG_BMP_RAM(0), starsBitmapLen);
 	// dmaCopyHalfWords(DMA_CHANNEL, bitmap2, (uint16*) BG_BMP_RAM(8), bitmmap2length);
 	dmaCopyHalfWords(DMA_CHANNEL, starsBitmap, (uint16*) BG_BMP_RAM_SUB(0), starsBitmapLen);
+	*/
 }
 
 void InitBackground() {
