@@ -5,24 +5,19 @@
 
 ---------------------------------------------------------------------------------*/
 #include <nds.h>
+#include "Sprite.hpp"
 
-#include "tilemap.h"
-#include "stars.h"
+//#include "tilemap.h"
+//#include "stars.h"
 
 #define PAD_Y (uint16)170
 
-typedef struct Point {
-		uint16 x;
-		uint16 y;
-	} Point;
 
 int main(void) {
 
 	touchPosition touch;
 	
-	Point pos = {SCREEN_WIDTH/2,SCREEN_HEIGHT/2};
-	
-	//videoSetMode(MODE_0_2D);
+	videoSetMode(MODE_0_2D);
 	videoSetModeSub(MODE_0_2D);
 
 	// map bank A for use with the background
@@ -34,18 +29,19 @@ int main(void) {
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
 	//load the sprites
+	Sprite* pad = new Sprite(&oamSub, 1, SCREEN_WIDTH/2, PAD_Y, 32, 8, SpriteSize_32x8, SpriteColorFormat_256Color);
 	u16* gfx = oamAllocateGfx(&oamMain, SpriteSize_16x16, SpriteColorFormat_256Color);
 	u16* gfxSub = oamAllocateGfx(&oamSub, SpriteSize_32x8, SpriteColorFormat_256Color);
 
 	int i = 0;
-	for(i = 0; i < 16 * 32 / 2; i++)
+	for(i = 0; i < 8*32; i++)
 	{
 		gfx[i] = 1 | (1 << 8);
 		gfxSub[i] = 1 | (1 << 8);
 	}
 
 	SPRITE_PALETTE[1] = RGB15(31,0,0);
-	SPRITE_PALETTE_SUB[1] = RGB15(0,31,0);
+	SPRITE_PALETTE_SUB[1] = RGB15(15,15,15);
 
 	while(1) {
 
@@ -57,15 +53,15 @@ int main(void) {
 			touchRead(&touch);
 		}
 		else if(held & KEY_RIGHT){
-			pos.x += 1;
+			pad->UpdatePosition(pad->x + 1, pad->y);
 		}
 		else if(held & KEY_LEFT){
-			pos.x -= 1;
+			pad->UpdatePosition(pad->x - 1, pad->y);
 		}
 
 		if(held & KEY_START) break;
 
-		/*
+		
 		oamSet(&oamMain, //main graphics engine context
 			0,           //oam index (0 to 127)  
 			touch.px, touch.py,   //x and y pixle location of the sprite
@@ -81,23 +77,27 @@ int main(void) {
 			false	//apply mosaic
 			);              
 		
-		*/
+		
 
-		oamSet(&oamSub, 
-			0, 
-			pos.x, PAD_Y,
-			0, 
-			0,
-			SpriteSize_32x8, 
-			SpriteColorFormat_256Color, 
-			gfxSub, 
-			-1, 
-			false, 
-			false,			
-			false, false, 
-			false	
+		//pad->PlaceSprite();
+		pad->gfx = gfxSub;
+		oamSet(pad->oam, 
+			pad->id, 
+			pad->x, pad->y,
+			pad->priority, 
+			pad->palette,
+			pad->size,
+			pad->colorFormat, 
+			pad->gfx, 
+			pad->rotation, 
+			pad->rotDoubleSize, 
+			pad->hide,			
+			pad->vflip, pad->hflip, 
+			pad->mosaic	
 			);              
-	
+		
+		//pad->PlaceSprite();
+
 		swiWaitForVBlank();
 
 		
