@@ -7,6 +7,7 @@
 #include <nds.h>
 #include "Sprite.hpp"
 
+#include "block.h"
 //#include "tilemap.h"
 //#include "stars.h"
 
@@ -29,13 +30,13 @@ int main(void) {
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
 	//load the sprites
-	Sprite* pad = new Sprite(&oamSub, 1, SCREEN_WIDTH/2, PAD_Y, 32, 8, SpriteSize_32x8, SpriteColorFormat_256Color);
+	Sprite* pad = new Sprite(&oamSub, 1, SCREEN_WIDTH/2, PAD_Y, 32, 8, SpriteSize_32x8, SpriteColorFormat_256Color,
+							 blockTiles, blockTilesLen, blockPalSs, blockPalLen);
 	u16* gfx = oamAllocateGfx(&oamMain, SpriteSize_16x16, SpriteColorFormat_256Color);
 	u16* gfxSub = oamAllocateGfx(&oamSub, SpriteSize_32x8, SpriteColorFormat_256Color);
 
 	int i = 0;
-	for(i = 0; i < 8*32; i++)
-	{
+	for(i = 0; i < 8*32; i++) {
 		gfx[i] = 1 | (1 << 8);
 		gfxSub[i] = 1 | (1 << 8);
 	}
@@ -53,10 +54,10 @@ int main(void) {
 			touchRead(&touch);
 		}
 		else if(held & KEY_RIGHT){
-			pad->UpdatePosition(pad->x + 1, pad->y);
+			//pad->UpdatePosition(pad->x + 1, pad->y);
 		}
 		else if(held & KEY_LEFT){
-			pad->UpdatePosition(pad->x - 1, pad->y);
+			//pad->UpdatePosition(pad->x - 1, pad->y);
 		}
 
 		if(held & KEY_START) break;
@@ -80,6 +81,7 @@ int main(void) {
 		
 
 		//pad->PlaceSprite();
+		/*
 		pad->gfx = gfxSub;
 		oamSet(pad->oam, 
 			pad->id, 
@@ -95,7 +97,7 @@ int main(void) {
 			pad->vflip, pad->hflip, 
 			pad->mosaic	
 			);              
-		
+		*/
 		//pad->PlaceSprite();
 
 		swiWaitForVBlank();
