@@ -2,6 +2,8 @@
 
 #include <nds.h>
 
+#include "block.h"
+
 class Sprite {
     private:
     bool alocated;
@@ -40,11 +42,7 @@ class Sprite {
             int width,
             int height,
             SpriteSize size,
-            SpriteColorFormat colorFormat,
-            unsigned int* tiles,
-            int tilesLen,
-            unsigned short* palette,
-            int paletteLen
+            SpriteColorFormat colorFormat
            ){
         this->oam = oam;
         this->id = id;
@@ -55,23 +53,22 @@ class Sprite {
         this->size = size;
         this->colorFormat = colorFormat;
 
-        this->tiles = tiles;
-        this->tilesLen = tilesLen;
-        this->palette = palette;
-        this->paletteLen = paletteLen;
+        // this->tiles = tiles;
+        // this->tilesLen = tilesLen;
+        // this->palette = palette;
+        // this->paletteLen = paletteLen;
 
         AllocateImage();
         //SPRITE_PALETTE_SUB[1] = RGB15(0,10,1);
     }
 
     void AllocateImage(){
-        gfx = oamAllocateGfx(&oamSub, SpriteSize_32x8, SpriteColorFormat_256Color);
+        gfx = oamAllocateGfx(&oamSub, SpriteSize_8x8, SpriteColorFormat_256Color);
         
         alocated = true;
 
-        for(int i = 0; i < width*height; i++){
-            gfx[i] = 1 | (1<<8);
-        }
+        dmaCopy(blockTiles, gfx, blockTilesLen);
+        dmaCopy(blockPal, gfx, blockPalLen);
     }
 
     void PlaceSprite(){

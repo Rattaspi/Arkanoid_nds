@@ -14,7 +14,7 @@
 #define PAD_Y (uint16)170
 
 
-int main(void) {
+int main() {
 
 	touchPosition touch;
 	
@@ -29,9 +29,14 @@ int main(void) {
 	oamInit(&oamMain, SpriteMapping_1D_32, false);
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
+	//init background
+	setBackdropColorSub	(	RGB15(15,15,31)	);
+	bgInitSub(3, BgType_Text4bpp, BgSize_T_256x256, 0, 0);
+	bgExtPaletteEnableSub();
+
 	//load the sprites
-	Sprite* pad = new Sprite(&oamSub, 1, SCREEN_WIDTH/2, PAD_Y, 32, 8, SpriteSize_32x8, SpriteColorFormat_256Color,
-							 blockTiles, blockTilesLen, blockPalSs, blockPalLen);
+	Sprite* pad = new Sprite(&oamSub, 1, SCREEN_WIDTH/2, PAD_Y, 32, 8,
+							 SpriteSize_32x8, SpriteColorFormat_256Color);
 	u16* gfx = oamAllocateGfx(&oamMain, SpriteSize_16x16, SpriteColorFormat_256Color);
 	u16* gfxSub = oamAllocateGfx(&oamSub, SpriteSize_32x8, SpriteColorFormat_256Color);
 
@@ -42,7 +47,7 @@ int main(void) {
 	}
 
 	SPRITE_PALETTE[1] = RGB15(31,0,0);
-	SPRITE_PALETTE_SUB[1] = RGB15(15,15,15);
+	//SPRITE_PALETTE_SUB[1] = RGB15(15,15,15);
 
 	while(1) {
 
@@ -54,10 +59,10 @@ int main(void) {
 			touchRead(&touch);
 		}
 		else if(held & KEY_RIGHT){
-			//pad->UpdatePosition(pad->x + 1, pad->y);
+			pad->UpdatePosition(pad->x + 1, pad->y);
 		}
 		else if(held & KEY_LEFT){
-			//pad->UpdatePosition(pad->x - 1, pad->y);
+			pad->UpdatePosition(pad->x - 1, pad->y);
 		}
 
 		if(held & KEY_START) break;
@@ -80,7 +85,7 @@ int main(void) {
 		
 		
 
-		//pad->PlaceSprite();
+		pad->PlaceSprite();
 		/*
 		pad->gfx = gfxSub;
 		oamSet(pad->oam, 
