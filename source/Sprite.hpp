@@ -17,10 +17,10 @@ class Sprite {
     uint16 y;
     int width;
     int height;
-    int priority = 3;
+    int priority = 0;
     //this is the palette index if
     //multiple palettes or the alpha value if bmp sprite
-    //int palette = 1;
+    int palette = 3;
     SpriteSize size;
     SpriteColorFormat colorFormat;
     int rotation = -1; //between [0,31]
@@ -30,10 +30,10 @@ class Sprite {
     bool vflip = false;
     bool mosaic = false;
 
-    unsigned int* tiles;
-    int tilesLen;
-    unsigned short* palette;
-    int paletteLen;
+    //unsigned int* tiles;
+    //int tilesLen;
+    //unsigned short* palette;
+    //int paletteLen;
 
     Sprite(OamState* oam,
             int id,
@@ -52,23 +52,24 @@ class Sprite {
         this->height = height;
         this->size = size;
         this->colorFormat = colorFormat;
+        //this->palette = palette;
 
         // this->tiles = tiles;
         // this->tilesLen = tilesLen;
-        // this->palette = palette;
+        
         // this->paletteLen = paletteLen;
 
         AllocateImage();
-        //SPRITE_PALETTE_SUB[1] = RGB15(0,10,1);
+        
     }
 
     void AllocateImage(){
-        gfx = oamAllocateGfx(&oamSub, SpriteSize_8x8, SpriteColorFormat_256Color);
+        gfx = oamAllocateGfx(&oamSub, size, colorFormat);
         
         alocated = true;
 
-        dmaCopy(blockTiles, gfx, blockTilesLen);
-        dmaCopy(blockPal, gfx, blockPalLen);
+        dmaCopy(blockTiles, gfx, sizeof(blockTiles));
+        dmaCopy(blockPal, gfx, sizeof(blockPal));
     }
 
     void PlaceSprite(){
@@ -76,7 +77,7 @@ class Sprite {
                 id,
                 x, y,
                 priority,
-                palette[0],
+                palette,
                 size,
                 colorFormat,
                 gfx,

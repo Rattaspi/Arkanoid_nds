@@ -35,8 +35,8 @@ int main() {
 	bgExtPaletteEnableSub();
 
 	//load the sprites
-	Sprite* pad = new Sprite(&oamSub, 1, SCREEN_WIDTH/2, PAD_Y, 32, 8,
-							 SpriteSize_32x8, SpriteColorFormat_256Color);
+	Sprite* pad = new Sprite(&oamSub, 0, SCREEN_WIDTH/2, PAD_Y, 32, 8,
+							 SpriteSize_8x8, SpriteColorFormat_256Color);
 	u16* gfx = oamAllocateGfx(&oamMain, SpriteSize_16x16, SpriteColorFormat_256Color);
 	u16* gfxSub = oamAllocateGfx(&oamSub, SpriteSize_32x8, SpriteColorFormat_256Color);
 
@@ -47,7 +47,11 @@ int main() {
 	}
 
 	SPRITE_PALETTE[1] = RGB15(31,0,0);
-	//SPRITE_PALETTE_SUB[1] = RGB15(15,15,15);
+	SPRITE_PALETTE_SUB[1] = RGB15(31,0,0);
+	SPRITE_PALETTE_SUB[2] = RGB15(0,31,0);
+	SPRITE_PALETTE_SUB[3] = RGB15(0,0,31);
+	SPRITE_PALETTE_SUB[4] = RGB15(31,31,31);
+	
 
 	while(1) {
 
