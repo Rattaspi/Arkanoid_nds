@@ -4,25 +4,30 @@
 
 #include "block.h"
 
+#define SPRITE_WIDTH 8
+#define SPRITE_HEIGHT 8
+
 class Sprite {
     private:
     bool alocated;
-    
+    int id;
+
     public:
     OamState* oam;
-    int id;
+    static int mainID;
+    static int subID;
+    
+    int imageToUse; //position in the spritesheet
     u16* gfx; //loaded graphic
 
     uint16 x;
     uint16 y;
-    int width;
-    int height;
+    int width, height;
+
     int priority = 0;
-    //this is the palette index if
-    //multiple palettes or the alpha value if bmp sprite
     int palette = 0;
-    SpriteSize size;
-    SpriteColorFormat colorFormat;
+    static const SpriteSize size = SpriteSize_8x8;
+    static const SpriteColorFormat colorFormat = SpriteColorFormat_256Color;
     int rotation = -1; //between [0,31]
     bool rotDoubleSize = false;
     bool hide = false;
@@ -30,37 +35,53 @@ class Sprite {
     bool vflip = false;
     bool mosaic = false;
 
-    Sprite(OamState* oam,
-            int id,
-            int x,
-            int y,
-            int width,
-            int height,
-            SpriteSize size,
-            SpriteColorFormat colorFormat
-           ){
-        this->oam = oam;
-        this->id = id;
+    Sprite(){}
+    Sprite(int imageToUse, int x, int y, bool topScreen){
+        this->imageToUse = imageToUse;
         this->x = x;
         this->y = y;
-        this->width = width;
-        this->height = height;
-        this->size = size;
-        this->colorFormat = colorFormat;
 
-        AllocateImage();        
+        if(topScreen){
+            oam = &oamMain;
+            id = mainID;
+            mainID++;
+        }
+        else {
+            oam = &oamSub;
+            id = subID;
+            subID++;
+        }
+
+        AllocateImage();
     }
 
     void AllocateImage(){
-        gfx = oamAllocateGfx(&oamSub, size, colorFormat);
+        gfx = oamAllocateGfx(oam, size, colorFormat);
         
         alocated = true;
 
-        dmaCopy(blockTiles, gfx, sizeof(blockTiles));
-        dmaCopy(blockPal, SPRITE_PALETTE_SUB, sizeof(blockPal));
+        u8* offset = (u8*)blockTiles + (imageToUse * SPRITE_WIDTH*SPRITE_HEIGHT);
+        dmaCopy(offset, gfx, SPRITE_WIDTH*SPRITE_HEIGHT);
     }
 
     void PlaceSprite(){
+        oamSet(oam,
+                id,
+                x, y,
+                priority,
+                palette,
+                size,
+                colorFormat,
+                gfx,
+                rotation,
+                rotDoubleSize,
+                hide,
+                vflip, hflip,
+                mosaic
+                );
+    }
+
+    void PlaceSprite(int x, int y){
         oamSet(oam,
                 id,
                 x, y,

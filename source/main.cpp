@@ -1,18 +1,15 @@
-/*---------------------------------------------------------------------------------
-
-   Simple tilemap demo
-   -- WinterMute
-
----------------------------------------------------------------------------------*/
 #include <nds.h>
-#include "Sprite.hpp"
+#include <vector>
+#include "Block.hpp"
+#include "Avatar.hpp"
+#include "Ball.hpp"
 
 #include "block.h"
-//#include "tilemap.h"
-//#include "stars.h"
 
-#define PAD_Y (uint16)170
+#define AVATAR_Y 170
 
+int Sprite::mainID = 0;
+int Sprite::subID = 0;
 
 int main() {
 
@@ -30,29 +27,32 @@ int main() {
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
 	//init background
-	setBackdropColorSub	(	RGB15(15,15,31)	);
-	bgInitSub(3, BgType_Text4bpp, BgSize_T_256x256, 0, 0);
-	bgExtPaletteEnableSub();
+	//setBackdropColorSub	(	RGB15(15,15,31)	);
+	//bgInitSub(3, BgType_Text4bpp, BgSize_T_256x256, 0, 0);
 
-	//load the sprites
-	Sprite* pad = new Sprite(&oamSub, 0, SCREEN_WIDTH/2, PAD_Y, 32, 8,
-							 SpriteSize_8x8, SpriteColorFormat_256Color);
-	u16* gfx = oamAllocateGfx(&oamMain, SpriteSize_16x16, SpriteColorFormat_256Color);
-	u16* gfxSub = oamAllocateGfx(&oamSub, SpriteSize_32x8, SpriteColorFormat_256Color);
+	//load the palettes
+	dmaCopy((u8*)blockPal, SPRITE_PALETTE, sizeof(blockPal));
+	dmaCopy((u8*)blockPal, SPRITE_PALETTE_SUB, sizeof(blockPal));
 
-	int i = 0;
-	for(i = 0; i < 8*32; i++) {
-		gfx[i] = 1 | (1 << 8);
-		gfxSub[i] = 1 | (1 << 8);
+	//Level layout in the top screen
+	std::vector<Block> blocks;
+	std::pair<int, int> initialPos (40, 40);
+	std::pair<int, int> blockOffset(18, 10);
+	int maxColumns = 10;
+	int maxRows = 5;
+	
+	for(int row = 0; row < maxRows; row++){
+		for(int col = 0; col < maxColumns; col++){
+			blocks.push_back(Block(2, initialPos.first + col * blockOffset.first, initialPos.second + row * blockOffset.second));
+		}
 	}
 
-	SPRITE_PALETTE[1] = RGB15(31,0,0);
-	SPRITE_PALETTE_SUB[1] = RGB15(31,0,0);
-	SPRITE_PALETTE_SUB[2] = RGB15(0,31,0);
-	SPRITE_PALETTE_SUB[3] = RGB15(0,0,31);
-	SPRITE_PALETTE_SUB[4] = RGB15(31,31,31);
-	
+	//Avatar
+	Avatar avatar = Avatar(4, 100, AVATAR_Y);
 
+	//Ball
+	Ball ball = Ball(100, AVATAR_Y + 6);
+	
 	while(1) {
 
 		scanKeys();
@@ -63,51 +63,25 @@ int main() {
 			touchRead(&touch);
 		}
 		else if(held & KEY_RIGHT){
-			pad->UpdatePosition(pad->x + 1, pad->y);
+			avatar.MoveRight();
 		}
 		else if(held & KEY_LEFT){
-			pad->UpdatePosition(pad->x - 1, pad->y);
+			avatar.MoveLeft();
 		}
 
 		if(held & KEY_START) break;
 
-		
-		oamSet(&oamMain, //main graphics engine context
-			0,           //oam index (0 to 127)  
-			touch.px, touch.py,   //x and y pixle location of the sprite
-			0,                    //priority, lower renders last (on top)
-			0,					  //this is the palette index if multiple palettes or the alpha value if bmp sprite	
-			SpriteSize_16x16,     
-			SpriteColorFormat_256Color, 
-			gfx,                  //pointer to the loaded graphics
-			-1,                  //sprite rotation data  
-			false,               //double the size when rotating?
-			false,			//hide the sprite?
-			false, false, //vflip, hflip
-			false	//apply mosaic
-			);              
-		
-		
+		//Draw the blocks
+		for(int i = 0; i < blocks.size(); i++){
+			blocks[i].Draw();
+		}
 
-		pad->PlaceSprite();
-		/*
-		pad->gfx = gfxSub;
-		oamSet(pad->oam, 
-			pad->id, 
-			pad->x, pad->y,
-			pad->priority, 
-			pad->palette,
-			pad->size,
-			pad->colorFormat, 
-			pad->gfx, 
-			pad->rotation, 
-			pad->rotDoubleSize, 
-			pad->hide,			
-			pad->vflip, pad->hflip, 
-			pad->mosaic	
-			);              
-		*/
-		//pad->PlaceSprite();
+		//Draw the avatar
+		avatar.Draw();
+
+		//Ball
+		ball.Update();
+		ball.Draw();
 
 		swiWaitForVBlank();
 
