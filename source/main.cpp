@@ -1,5 +1,7 @@
 #include <nds.h>
 #include <vector>
+#include <time.h>
+
 #include "Block.hpp"
 #include "Avatar.hpp"
 #include "Ball.hpp"
@@ -12,7 +14,8 @@ int Sprite::mainID = 0;
 int Sprite::subID = 0;
 
 int main() {
-
+	swiWaitForVBlank();
+	srand(time(NULL));
 	touchPosition touch;
 	
 	videoSetMode(MODE_0_2D);
@@ -34,6 +37,8 @@ int main() {
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE, sizeof(blockPal));
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE_SUB, sizeof(blockPal));
 
+	//consoleDemoInit();
+
 	//Level layout in the top screen
 	std::vector<Block> blocks;
 	std::pair<int, int> initialPos (40, 40);
@@ -51,7 +56,9 @@ int main() {
 	Avatar avatar = Avatar(4, 100, AVATAR_Y);
 
 	//Ball
-	Ball ball = Ball(100, AVATAR_Y + 6);
+	Ball ball = Ball(100, AVATAR_Y - 6);
+	ball.avatar = &avatar;
+	ball.blockList = &blocks;
 	
 	while(1) {
 
@@ -68,11 +75,14 @@ int main() {
 		else if(held & KEY_LEFT){
 			avatar.MoveLeft();
 		}
+		else if(held & KEY_A){
+			ball.ChangeState(1);
+		}
 
 		if(held & KEY_START) break;
 
 		//Draw the blocks
-		for(int i = 0; i < blocks.size(); i++){
+		for(unsigned int i = 0; i < blocks.size(); i++){
 			blocks[i].Draw();
 		}
 

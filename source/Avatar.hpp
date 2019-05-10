@@ -7,11 +7,12 @@
 class Avatar{
 private:
     std::vector<Sprite> blocks;
-    std::pair<int,int> position;
+    
 
     int speed = 2;
 
 public:
+    std::pair<int,int> position;
 
     Avatar(){}
 
@@ -34,6 +35,10 @@ public:
 
     void MoveLeft(){
         position.first -= speed;
+    }
+
+    int GetAvatarLength(){
+        return blocks.size()*8;
     }
 
 };
