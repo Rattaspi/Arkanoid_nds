@@ -1,8 +1,9 @@
 #pragma once
-
+#include <cmath>
 
 #include "Sprite.hpp"
-#include <cmath>
+#include "soundbank.h"
+
 
 class Ball {
     private:
@@ -58,6 +59,7 @@ class Ball {
                 //Manage die
                 if(!topScreen && position.second > SCREEN_HEIGHT){
                     state = 0;
+                    mmEffect(SFX_KILL);
                 }
                 break;
 
@@ -98,10 +100,12 @@ class Ball {
         //Horizontal collision
         if(position.first < 0 || position.first+4 > SCREEN_WIDTH){
             speed.first *= -1;
+            mmEffect(SFX_HIT);
         }
         //Top collision
         if(topScreen && position.second < 0){
             speed.second *= -1;
+            mmEffect(SFX_HIT);
         }
 
         //Object collision
@@ -119,6 +123,7 @@ class Ball {
                 position.second + 4 > avatar->position.second){
                 
                 speed.second = std::abs(speed.second) * -1;
+                mmEffect(SFX_HIT);
             }
         }
         else {
@@ -132,6 +137,7 @@ class Ball {
                         
                         b.Kill();
                         speed.second *= -1;
+                        mmEffect(SFX_HIT);
                     }
                 }
             }

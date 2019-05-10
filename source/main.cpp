@@ -1,4 +1,5 @@
 #include <nds.h>
+#include <maxmod9.h>
 #include <vector>
 #include <time.h>
 
@@ -7,6 +8,9 @@
 #include "Ball.hpp"
 
 #include "block.h"
+
+#include "soundbank.h"
+#include "soundbank_bin.h"
 
 #define AVATAR_Y 170
 
@@ -28,6 +32,9 @@ int main() {
 	//init the graphic system
 	oamInit(&oamMain, SpriteMapping_1D_32, false);
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
+
+	//init audio
+	mmInitDefaultMem((mm_addr)soundbank_bin);
 
 	//init background
 	//setBackdropColorSub	(	RGB15(15,15,31)	);
@@ -59,12 +66,20 @@ int main() {
 	Ball ball = Ball(100, AVATAR_Y - 6);
 	ball.avatar = &avatar;
 	ball.blockList = &blocks;
+
+	//load sfx
+	mmLoadEffect(SFX_HIT);
+	mmLoadEffect(SFX_KILL);
 	
 	while(1) {
 
 		scanKeys();
 
 		int held = keysHeld();
+
+		if(keysDown() & KEY_UP){
+			mmEffect(SFX_HIT);
+		}
 
 		if(held & KEY_TOUCH){
 			touchRead(&touch);
