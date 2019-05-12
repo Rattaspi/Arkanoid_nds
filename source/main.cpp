@@ -6,6 +6,7 @@
 #include "Block.hpp"
 #include "Avatar.hpp"
 #include "Ball.hpp"
+#include "UIManager.hpp"
 
 #include "block.h"
 
@@ -70,6 +71,10 @@ int main() {
 	//load sfx
 	mmLoadEffect(SFX_HIT);
 	mmLoadEffect(SFX_KILL);
+
+	//init UI manager
+	UIManager UI = UIManager();
+	ball.UI = &UI;
 	
 	while(1) {
 
@@ -107,6 +112,9 @@ int main() {
 		//Ball
 		ball.Update();
 		ball.Draw();
+
+		//UI
+		UI.Draw();
 
 		swiWaitForVBlank();
 

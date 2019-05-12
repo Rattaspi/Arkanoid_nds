@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "Sprite.hpp"
+#include "UIManager.hpp"
 #include "soundbank.h"
 
 
@@ -24,6 +25,7 @@ class Ball {
     public:
     Avatar* avatar;
     std::vector<Block>* blockList;
+    UIManager* UI;
 
     Ball(){}
 
@@ -59,6 +61,7 @@ class Ball {
                 //Manage die
                 if(!topScreen && position.second > SCREEN_HEIGHT){
                     state = 0;
+                    UI->hp = UI->hp - 1;
                     mmEffect(SFX_KILL);
                 }
                 break;
@@ -128,7 +131,7 @@ class Ball {
         }
         else {
             for(unsigned int i = 0; i < blockList->size(); i++){
-                Block b = (*blockList)[i];
+                Block& b = (*blockList)[i];
                 if(!b.killed){
                     if(position.first < b.position.first + b.GetWidth() &&
                         position.first + 4 > b.position.first &&
