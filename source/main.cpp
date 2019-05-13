@@ -7,8 +7,12 @@
 #include "Avatar.hpp"
 #include "Ball.hpp"
 #include "UIManager.hpp"
+#include "BigSprite.hpp"
 
 #include "block.h"
+#include "bigImages.h"
+#include "bgMain.h"
+#include "bgSub.h"
 
 #include "soundbank.h"
 #include "soundbank_bin.h"
@@ -23,16 +27,25 @@ int main() {
 	srand(time(NULL));
 	touchPosition touch;
 	
-	videoSetMode(MODE_0_2D);
+	videoSetMode(MODE_5_2D);
 	videoSetModeSub(MODE_0_2D);
 
 	// map bank A for use with the background
-	vramSetBankA(VRAM_A_MAIN_SPRITE);
+	vramSetBankA(VRAM_A_MAIN_BG_0x06000000);
+	vramSetBankB(VRAM_B_MAIN_SPRITE);
+	vramSetBankC(VRAM_C_SUB_BG_0x06200000);
 	vramSetBankD(VRAM_D_SUB_SPRITE);
 
 	//init the graphic system
 	oamInit(&oamMain, SpriteMapping_1D_32, false);
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
+
+	//init background
+	setBackdropColor(RGB15(15,15,31));
+	setBackdropColorSub(RGB15(15,15,31));
+	// int bg = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0,0);
+	// dmaCopy(bgSubBitmap, bgGetGfxPtr(bg), SCREEN_WIDTH*SCREEN_HEIGHT);
+	// dmaCopy(bgSubPal, BG_PALETTE, bgSubPalLen);
 
 	//init audio
 	mmInitDefaultMem((mm_addr)soundbank_bin);
@@ -44,8 +57,14 @@ int main() {
 	//load the palettes
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE, sizeof(blockPal));
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE_SUB, sizeof(blockPal));
+	dmaCopy((u8*)bigImagesPal, SPRITE_PALETTE + 10, sizeof(bigImagesPal));
+	dmaCopy((u8*)bigImagesPal, SPRITE_PALETTE_SUB + 10, sizeof(bigImagesPal));
+
 
 	//consoleDemoInit();
+
+	//BACKGROUND STUFF
+	BigSprite cloud = BigSprite(0, 50,50, true);
 
 	//Level layout in the top screen
 	std::vector<Block> blocks;
@@ -100,6 +119,9 @@ int main() {
 		}
 
 		if(held & KEY_START) break;
+
+		//Draw the background
+		cloud.PlaceSprite();
 
 		//Draw the blocks
 		for(unsigned int i = 0; i < blocks.size(); i++){

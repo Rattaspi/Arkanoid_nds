@@ -30,11 +30,15 @@ public:
     }
 
     void MoveRight(){
-        position.first += speed;
+        if(position.first + GetAvatarLength() < SCREEN_WIDTH){
+            position.first += speed;
+        }
     }
 
     void MoveLeft(){
-        position.first -= speed;
+        if(position.first > 0){
+            position.first -= speed;
+        }
     }
 
     int GetAvatarLength(){
