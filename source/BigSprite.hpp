@@ -56,15 +56,12 @@ class BigSprite {
 
     void AllocateImage(){
         gfx = oamAllocateGfx(oam, size, colorFormat);
-
-        for(unsigned int i = 0; i < sizeof(gfx)/sizeof(*gfx); i++){
-            gfx[i] += 10;
-        }
         
         alocated = true;
 
         u8* offset = (u8*)bigImagesTiles + (imageToUse * SPRITE_WIDTH*SPRITE_HEIGHT);
         dmaCopy(offset, gfx, SPRITE_WIDTH*SPRITE_HEIGHT);
+        gfx += 10;
     }
 
     void PlaceSprite(){
