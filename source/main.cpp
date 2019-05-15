@@ -22,18 +22,46 @@
 int Sprite::mainID = 0;
 int Sprite::subID = 0;
 
+BigSprite cloud;
+Avatar avatar;
+Ball ball;
+UIManager UI;
+
+//Level layout in the top screen
+std::vector<Block> blocks;
+std::pair<int, int> initialPos (40, 40);
+std::pair<int, int> blockOffset(18, 10);
+int maxColumns = 10;
+int maxRows = 5;
+
+bool playing = true;
+bool gameOver = false;
+
+void Init();
+void Update();
+void Gameover();
+void Restart();
+
 int main() {
+	Init();	
+
+	while(playing) {
+		Update();
+	}
+
+	return 0;
+}
+
+
+void Init(){
 	swiWaitForVBlank();
 	srand(time(NULL));
-	touchPosition touch;
 	
-	videoSetMode(MODE_5_2D);
+	videoSetMode(MODE_0_2D);
 	videoSetModeSub(MODE_0_2D);
 
 	// map bank A for use with the background
-	vramSetBankA(VRAM_A_MAIN_BG_0x06000000);
-	vramSetBankB(VRAM_B_MAIN_SPRITE);
-	vramSetBankC(VRAM_C_SUB_BG_0x06200000);
+	vramSetBankA(VRAM_A_MAIN_SPRITE);
 	vramSetBankD(VRAM_D_SUB_SPRITE);
 
 	//init the graphic system
@@ -43,16 +71,9 @@ int main() {
 	//init background
 	setBackdropColor(RGB15(15,15,31));
 	setBackdropColorSub(RGB15(15,15,31));
-	// int bg = bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0,0);
-	// dmaCopy(bgSubBitmap, bgGetGfxPtr(bg), SCREEN_WIDTH*SCREEN_HEIGHT);
-	// dmaCopy(bgSubPal, BG_PALETTE, bgSubPalLen);
 
 	//init audio
 	mmInitDefaultMem((mm_addr)soundbank_bin);
-
-	//init background
-	//setBackdropColorSub	(	RGB15(15,15,31)	);
-	//bgInitSub(3, BgType_Text4bpp, BgSize_T_256x256, 0, 0);
 
 	//load the palettes
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE, sizeof(blockPal));
@@ -60,19 +81,14 @@ int main() {
 	dmaCopy((u8*)bigImagesPal, SPRITE_PALETTE + 10, sizeof(bigImagesPal));
 	dmaCopy((u8*)bigImagesPal, SPRITE_PALETTE_SUB + 10, sizeof(bigImagesPal));
 
-
-	//consoleDemoInit();
+	//load sfx
+	mmLoadEffect(SFX_HIT);
+	mmLoadEffect(SFX_KILL);
 
 	//BACKGROUND STUFF
-	BigSprite cloud = BigSprite(0, 50,50, true);
+	cloud = BigSprite(0, 50, 120, true);
 
-	//Level layout in the top screen
-	std::vector<Block> blocks;
-	std::pair<int, int> initialPos (40, 40);
-	std::pair<int, int> blockOffset(18, 10);
-	int maxColumns = 10;
-	int maxRows = 5;
-	
+	//Blocks layout
 	for(int row = 0; row < maxRows; row++){
 		for(int col = 0; col < maxColumns; col++){
 			blocks.push_back(Block(2, initialPos.first + col * blockOffset.first, initialPos.second + row * blockOffset.second));
@@ -80,53 +96,57 @@ int main() {
 	}
 
 	//Avatar
-	Avatar avatar = Avatar(4, 100, AVATAR_Y);
+	avatar = Avatar(4, 100, AVATAR_Y);
 
 	//Ball
-	Ball ball = Ball(100, AVATAR_Y - 6);
+	ball = Ball(100, AVATAR_Y - 6);
 	ball.avatar = &avatar;
 	ball.blockList = &blocks;
 
-	//load sfx
-	mmLoadEffect(SFX_HIT);
-	mmLoadEffect(SFX_KILL);
-
 	//init UI manager
-	UIManager UI = UIManager();
+	UI = UIManager();
 	ball.UI = &UI;
-	
-	while(1) {
 
-		scanKeys();
+}
 
-		int held = keysHeld();
+void Update(){
+	scanKeys();
 
-		if(keysDown() & KEY_UP){
-			mmEffect(SFX_HIT);
-		}
+	int held = keysHeld();
+	int down = keysDown();
 
-		if(held & KEY_TOUCH){
-			touchRead(&touch);
-		}
-		else if(held & KEY_RIGHT){
-			avatar.MoveRight();
-		}
-		else if(held & KEY_LEFT){
-			avatar.MoveLeft();
-		}
-		else if(held & KEY_A){
-			ball.ChangeState(1);
-		}
+	if((down & KEY_UP) && gameOver){
+		Restart();
+	}
+	else if(down & KEY_DOWN){
+		Gameover();
+	}
 
-		if(held & KEY_START) break;
 
-		//Draw the background
-		cloud.PlaceSprite();
+	if(held & KEY_RIGHT){
+		avatar.MoveRight();
+	}
+	else if(held & KEY_LEFT){
+		avatar.MoveLeft();
+	}
+	else if(held & KEY_A){
+		ball.ChangeState(1);
+	}
 
+	if(held & KEY_START){
+		playing = false;
+	}
+
+	//Draw the background
+	cloud.PlaceSprite();
+
+	if(!gameOver){
 		//Draw the blocks
 		for(unsigned int i = 0; i < blocks.size(); i++){
 			blocks[i].Draw();
 		}
+
+		cloud.PlaceSprite();
 
 		//Draw the avatar
 		avatar.Draw();
@@ -138,12 +158,36 @@ int main() {
 		//UI
 		UI.Draw();
 
-		swiWaitForVBlank();
-
-		
-		oamUpdate(&oamMain);
-		oamUpdate(&oamSub);
+		//Check end game condition
+		if(UI.hp <= 0){
+			gameOver = true;
+			Gameover();
+		}
 	}
 
-	return 0;
+	
+
+	swiWaitForVBlank();
+
+	
+	oamUpdate(&oamMain);
+	oamUpdate(&oamSub);
+}
+
+void Gameover(){
+	gameOver = true;
+	for(unsigned int i = 0; i < blocks.size(); i++){
+		blocks[i].Kill();
+		//Force redraw to hide them
+		blocks[i].Draw();
+	}
+}
+
+void Restart(){
+	gameOver = false;
+	for(unsigned int i = 0; i < blocks.size(); i++){
+		blocks[i].Reset();
+	}
+	UI.hp = UI.GetMaxHP();
+	ball.ChangeState(0);
 }

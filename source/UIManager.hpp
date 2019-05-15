@@ -8,6 +8,7 @@ class UIManager{
     Sprite hpSprites[maxHP];
     
     public:
+    
     int hp = maxHP;
 
     UIManager(){
@@ -32,5 +33,9 @@ class UIManager{
             }
              hpSprites[i].PlaceSprite();
         }
+    }
+
+    int GetMaxHP(){
+        return maxHP;
     }
 };

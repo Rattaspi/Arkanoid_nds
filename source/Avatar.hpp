@@ -9,7 +9,7 @@ private:
     std::vector<Sprite> blocks;
     
 
-    int speed = 2;
+    int speed = 4;
 
 public:
     std::pair<int,int> position;

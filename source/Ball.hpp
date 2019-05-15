@@ -5,6 +5,9 @@
 #include "UIManager.hpp"
 #include "soundbank.h"
 
+#define BALL_WIDTH 4
+#define BALL_HEIGHT 4
+
 
 class Ball {
     private:
@@ -38,8 +41,8 @@ class Ball {
         botSprite = Sprite(1, x, y, false);
         topScreen = false;
 
-        speed.first = 2 + std::round(rand()%4 - 2);
-        speed.second = -2 - std::round(-rand()%4);
+        speed.first = std::round(rand()%6 - 3);
+        speed.second = -1 - std::round(rand()%4);
         //printf("%d, %d, %d",speed.first, speed.second, rand());
     }
 
@@ -100,12 +103,12 @@ class Ball {
     }
 
     void UpdateCollision(){
-        //Horizontal collision
+        //Horizontal collision (screen)
         if(position.first < 0 || position.first+4 > SCREEN_WIDTH){
             speed.first *= -1;
             mmEffect(SFX_HIT);
         }
-        //Top collision
+        //Top collision (screen)
         if(topScreen && position.second < 0){
             speed.second *= -1;
             mmEffect(SFX_HIT);
@@ -113,12 +116,6 @@ class Ball {
 
         //Object collision
         if(!topScreen){
-            
-            // (rect1.x < rect2.x + rect2.width &&
-            // rect1.x + rect1.width > rect2.x &&
-            // rect1.y < rect2.y + rect2.height &&
-            // rect1.height + rect1.y > rect2.y)
-            
             //Collision with avatar
             if(position.first < avatar->position.first + avatar->GetAvatarLength() &&
                 position.first + 4 > avatar->position.first &&
@@ -133,17 +130,30 @@ class Ball {
             for(unsigned int i = 0; i < blockList->size(); i++){
                 Block& b = (*blockList)[i];
                 if(!b.killed){
-                    if(position.first < b.position.first + b.GetWidth() &&
+                    if(position.first < b.position.first + b.GetWidth()+2 &&
                         position.first + 4 > b.position.first &&
-                        position.second < b.position.second + 8 &&
+                        position.second < b.position.second + 10 &&
                         position.second + 4 > b.position.second){
                         
                         b.Kill();
-                        speed.second *= -1;
                         mmEffect(SFX_HIT);
+
+                        std::pair<int,int> blockCenter = {b.position.first + b.GetWidth(), position.second + 4};
+
+                        if(std::abs(blockCenter.first - position.first) <= b.GetWidth()/2){
+                            speed.first *= -1;
+                        }
+                        else{
+                            speed.second *= -1;
+                        }   
                     }
                 }
             }
         }
+    }
+
+    void Reset(){
+        topSprite.hide = true;
+        botSprite.hide = false;
     }
 };

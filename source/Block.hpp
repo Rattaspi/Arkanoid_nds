@@ -39,4 +39,11 @@ class Block {
             blocks[i].hide = true;
         }
     }
+
+    void Reset(){
+        killed = false;
+        for(unsigned int i = 0; i <  (sizeof(blocks)/sizeof(*blocks)); i++){
+            blocks[i].hide = false;
+        }
+    }
 };
