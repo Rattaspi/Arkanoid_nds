@@ -8,6 +8,7 @@
 #include "Ball.hpp"
 #include "UIManager.hpp"
 #include "BigSprite.hpp"
+#include "BackgroundSpritesManager.hpp"
 
 #include "block.h"
 #include "bigImages.h"
@@ -26,6 +27,7 @@ BigSprite cloud;
 Avatar avatar;
 Ball ball;
 UIManager UI;
+BackgroundSpritesManager bgsp;
 
 //Level layout in the top screen
 std::vector<Block> blocks;
@@ -86,7 +88,7 @@ void Init(){
 	mmLoadEffect(SFX_KILL);
 
 	//BACKGROUND STUFF
-	cloud = BigSprite(0, 50, 120, true);
+	bgsp = BackgroundSpritesManager();
 
 	//Blocks layout
 	for(int row = 0; row < maxRows; row++){
@@ -137,8 +139,7 @@ void Update(){
 		playing = false;
 	}
 
-	//Draw the background
-	cloud.PlaceSprite();
+	
 
 	if(!gameOver){
 		//Draw the blocks
@@ -165,7 +166,9 @@ void Update(){
 		}
 	}
 
-	
+	//Draw the background
+	bgsp.Update();
+	bgsp.Draw();
 
 	swiWaitForVBlank();
 

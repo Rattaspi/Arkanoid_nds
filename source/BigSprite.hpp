@@ -59,8 +59,8 @@ class BigSprite {
         
         alocated = true;
 
-        u8* offset = (u8*)bigImagesTiles + (imageToUse * SPRITE_WIDTH*SPRITE_HEIGHT);
-        for(int i = 0; i<SPRITE_WIDTH*SPRITE_HEIGHT; i++){
+        u16* offset = (u16*)bigImagesTiles + (imageToUse * BIG_SPRITE_WIDTH*BIG_SPRITE_HEIGHT);
+        for(int i = 0; i<BIG_SPRITE_WIDTH*BIG_SPRITE_HEIGHT; i++){
             gfx[i] = offset[i]+10;
         }
         //dmaCopy(offset, gfx, SPRITE_WIDTH*SPRITE_HEIGHT);
