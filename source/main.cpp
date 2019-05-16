@@ -72,6 +72,9 @@ void Init(){
 	oamInit(&oamMain, SpriteMapping_1D_32, false);
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
+	//Init console
+	consoleDemoInit();
+
 	//init audio
 	mmInitDefaultMem((mm_addr)soundbank_bin);
 
