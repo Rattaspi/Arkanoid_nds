@@ -59,25 +59,39 @@ void Init(){
 	swiWaitForVBlank();
 	srand(time(NULL));
 	
-	videoSetMode(MODE_0_2D);
-	videoSetModeSub(MODE_0_2D);
+	videoSetMode(MODE_5_2D);
+	videoSetModeSub(MODE_5_2D);
 
 	// map bank A for use with the background
 	vramSetBankA(VRAM_A_MAIN_SPRITE);
+	vramSetBankB(VRAM_B_MAIN_BG);
+	vramSetBankC(VRAM_C_SUB_BG);
 	vramSetBankD(VRAM_D_SUB_SPRITE);
 
 	//init the graphic system
 	oamInit(&oamMain, SpriteMapping_1D_32, false);
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
+	//init audio
+	mmInitDefaultMem((mm_addr)soundbank_bin);
+
 	//init background
 	setBackdropColor(RGB15(15,15,31));
 	setBackdropColorSub(RGB15(15,15,31));
 
-	//init audio
-	mmInitDefaultMem((mm_addr)soundbank_bin);
+	int bgMain = bgInit(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
+	dmaCopy(bgMainBitmap, bgGetGfxPtr(bgMain), sizeof(bgMainBitmap));
 
-	//load the palettes
+	int bgSub = bgInitSub(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
+	dmaCopy(bgSubBitmap, bgGetGfxPtr(bgSub), sizeof(bgSubBitmap)*2);
+
+
+	//load the palettes (background)
+	dmaCopy((u16*)bgMainPal, BG_PALETTE, sizeof(bgMainPal));
+	dmaCopy((u16*)bgSubPal, BG_PALETTE_SUB, sizeof(bgSubPal));
+
+	
+	//load the palettes (sprites)
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE, sizeof(blockPal));
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE_SUB, sizeof(blockPal));
 	dmaCopy((u8*)bigImagesPal, SPRITE_PALETTE + 10, sizeof(bigImagesPal));
@@ -124,7 +138,6 @@ void Update(){
 		Gameover();
 	}
 
-
 	if(held & KEY_RIGHT){
 		avatar.MoveRight();
 	}
@@ -139,6 +152,9 @@ void Update(){
 		playing = false;
 	}
 
+	//load the palettes (background)
+	dmaCopy((u16*)bgMainPal, BG_PALETTE, sizeof(bgMainPal));
+	dmaCopy((u16*)bgSubPal, BG_PALETTE_SUB, sizeof(bgSubPal));
 	
 
 	if(!gameOver){

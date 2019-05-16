@@ -23,7 +23,7 @@ class BigSprite {
     uint16 y;
     int width, height;
 
-    int priority = 0;
+    int priority = 1;
     int palette = 0;
     static const SpriteSize size = SpriteSize_64x64;
     static const SpriteColorFormat colorFormat = SpriteColorFormat_256Color;
