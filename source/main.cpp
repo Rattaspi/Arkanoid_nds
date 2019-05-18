@@ -14,6 +14,8 @@
 #include "bigImages.h"
 #include "bgMain.h"
 #include "bgSub.h"
+#include "bgSub1.h"
+#include "bgSub2.h"
 
 #include "soundbank.h"
 #include "soundbank_bin.h"
@@ -38,6 +40,13 @@ std::pair<int, int> blockOffset(18, 10);
 int maxColumns = 10;
 int maxRows = 5;
 
+std::vector<const unsigned int*> bgSequence;
+std::vector<u16*> bgPalettesSequence;
+uint8_t displayBg = 0;
+uint8_t displayBgFrameCounter = 0;
+int bgMain;
+int bgSub;
+
 bool playing = true;
 bool gameOver = false;
 
@@ -60,6 +69,7 @@ int main() {
 void Init(){
 	swiWaitForVBlank();
 	srand(time(NULL));
+	displayBg = 0;
 	
 	videoSetMode(MODE_5_2D);
 	videoSetModeSub(MODE_5_2D);
@@ -84,16 +94,26 @@ void Init(){
 	setBackdropColor(RGB15(15,15,31));
 	setBackdropColorSub(RGB15(15,15,31));
 
-	int bgMain = bgInit(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
+	bgMain = bgInit(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
 	dmaCopy(bgMainBitmap, bgGetGfxPtr(bgMain), sizeof(bgMainBitmap));
 
-	int bgSub = bgInitSub(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
-	dmaCopy(bgSubBitmap, bgGetGfxPtr(bgSub), sizeof(bgSubBitmap)*2);
+	bgSub = bgInitSub(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
+	dmaCopy(bgSubBitmap, bgGetGfxPtr(bgSub), sizeof(bgSubBitmap));
+
+	bgSequence.push_back(bgSubBitmap);
+	bgSequence.push_back(bgSub1Bitmap);
+	bgSequence.push_back(bgSubBitmap);
+	bgSequence.push_back(bgSub2Bitmap);
 
 
 	//load the palettes (background)
 	dmaCopy((u16*)bgMainPal, BG_PALETTE, sizeof(bgMainPal));
 	dmaCopy((u16*)bgSubPal, BG_PALETTE_SUB, sizeof(bgSubPal));
+	bgPalettesSequence.push_back((u16*)bgSubPal);
+	bgPalettesSequence.push_back((u16*)bgSub1Pal);
+	bgPalettesSequence.push_back((u16*)bgSubPal);
+	bgPalettesSequence.push_back((u16*)bgSub2Pal);
+
 
 	
 	//load the palettes (sprites)
@@ -166,8 +186,27 @@ void Update(){
 
 	//load the palettes (background)
 	dmaCopy((u16*)bgMainPal, BG_PALETTE, sizeof(bgMainPal));
-	dmaCopy((u16*)bgSubPal, BG_PALETTE_SUB, sizeof(bgSubPal));
-	
+	//animated background (in sub screen)
+	if(displayBg == 0 || displayBg == 2){
+		dmaCopy(bgSubBitmap, bgGetGfxPtr(bgSub), sizeof(bgSubBitmap));
+		dmaCopy((u16*)bgSubPal, BG_PALETTE_SUB, sizeof(bgSubPal));
+	}
+	else if(displayBg == 1){
+		dmaCopy(bgSub1Bitmap, bgGetGfxPtr(bgSub), sizeof(bgSub1Bitmap));
+		dmaCopy((u16*)bgSub1Pal, BG_PALETTE_SUB, sizeof(bgSub1Pal));
+	}
+	else if(displayBg == 3){
+		dmaCopy(bgSub2Bitmap, bgGetGfxPtr(bgSub), sizeof(bgSub2Bitmap));
+		dmaCopy((u16*)bgSub2Pal, BG_PALETTE_SUB, sizeof(bgSub2Pal));
+	}
+
+	//Change background every an arbitrary number of frames
+	if(displayBgFrameCounter > 20){
+		displayBg++;
+		displayBg %= 4;
+		displayBgFrameCounter = 0;
+	}
+	displayBgFrameCounter++;
 
 	if(!gameOver){
 		//Draw the blocks
