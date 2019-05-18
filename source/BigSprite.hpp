@@ -63,8 +63,6 @@ class BigSprite {
         for(int i = 0; i<BIG_SPRITE_WIDTH*BIG_SPRITE_HEIGHT; i++){
             gfx[i] = offset[i]+(0 | ((offset[i]>>8?10:0)<<8) | (offset[i]&0xFF?10:0));
         }
-        //dmaCopy(offset, gfx, SPRITE_WIDTH*SPRITE_HEIGHT);
-        //gfx += 10;
     }
 
     void PlaceSprite(){

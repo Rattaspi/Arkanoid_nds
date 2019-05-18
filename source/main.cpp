@@ -29,6 +29,8 @@ Ball ball;
 UIManager UI;
 BackgroundSpritesManager bgsp;
 
+BigSprite gameover1, gameover2;
+
 //Level layout in the top screen
 std::vector<Block> blocks;
 std::pair<int, int> initialPos (40, 40);
@@ -73,7 +75,7 @@ void Init(){
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
 	//Init console
-	consoleDemoInit();
+	//consoleDemoInit();
 
 	//init audio
 	mmInitDefaultMem((mm_addr)soundbank_bin);
@@ -126,6 +128,13 @@ void Init(){
 	UI = UIManager();
 	ball.UI = &UI;
 
+	//Gameover display
+	int xp = 60;
+	int yp = 50;
+	gameover1 = BigSprite(1, xp, yp, true);
+	gameover1.hide = true;
+	gameover2 = BigSprite(2, xp+64, yp, true);
+	gameover2.hide = true;
 }
 
 void Update(){
@@ -184,6 +193,8 @@ void Update(){
 			Gameover();
 		}
 	}
+	else {
+	}
 
 	//Draw the background
 	bgsp.Update();
@@ -203,6 +214,11 @@ void Gameover(){
 		//Force redraw to hide them
 		blocks[i].Draw();
 	}
+
+	gameover1.hide = false;
+	gameover1.PlaceSprite();
+	gameover2.hide = false;
+	gameover2.PlaceSprite();
 }
 
 void Restart(){
@@ -212,4 +228,9 @@ void Restart(){
 	}
 	UI.hp = UI.GetMaxHP();
 	ball.ChangeState(0);
+
+	gameover1.hide = true;
+	gameover1.PlaceSprite();
+	gameover2.hide = true;
+	gameover2.PlaceSprite();
 }
