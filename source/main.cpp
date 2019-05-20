@@ -146,10 +146,10 @@ void Init(){
 	dmaCopy((u8*)bigImagesPal, SPRITE_PALETTE_SUB + 10, sizeof(bigImagesPal));
 
 	//load sfx
-	mmLoadEffect(SFX_HIT);
-	mmLoadEffect(SFX_KILL);
+	//mmLoadEffect(SFX_HIT);
+	//mmLoadEffect(SFX_KILL);
 	mmLoadEffect(SFX_BG);
-	mmLoadEffect(SFX_LOSE);
+	//mmLoadEffect(SFX_LOSE);
 
 	//BACKGROUND STUFF
 	bgsp = BackgroundSpritesManager();
@@ -276,10 +276,12 @@ void Step(){
 void Quit(){
 	playing = false;
 
-	mmUnloadEffect(SFX_HIT);
-	mmUnloadEffect(SFX_KILL);
+	mmEffectCancelAll();
+
+	//mmUnloadEffect(SFX_HIT);
+	//mmUnloadEffect(SFX_KILL);
 	mmUnloadEffect(SFX_BG);
-	mmUnloadEffect(SFX_LOSE);
+	//mmUnloadEffect(SFX_LOSE);
 
 	free(soundPtr);
 
@@ -299,6 +301,7 @@ void Quit(){
 	bgPalettesSequence.clear();
 
 	DC_FlushAll();
+	
 }
 
 bool CheckWinCondition(){
