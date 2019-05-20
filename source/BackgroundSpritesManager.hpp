@@ -47,4 +47,10 @@ public:
         cloud2.PlaceSprite(cloud2Pos.first, cloud2Pos.second);
         cloud3.PlaceSprite(cloud3Pos.first, cloud3Pos.second);
     }
+
+    void Deallocate(){
+        cloud.Deallocate();
+        cloud2.Deallocate();
+        cloud3.Deallocate();
+    }
 };

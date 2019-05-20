@@ -55,6 +55,11 @@ class Sprite {
         AllocateImage();
     }
 
+    void Deallocate(){
+        oamFreeGfx(oam, gfx);
+        DC_FlushRange(gfx,blockTilesLen);
+    }
+
     void AllocateImage(){
         gfx = oamAllocateGfx(oam, size, colorFormat);
         

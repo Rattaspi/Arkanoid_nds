@@ -46,4 +46,11 @@ class Block {
             blocks[i].hide = false;
         }
     }
+
+    void Deallocate(){
+        for(unsigned int i = 0; i <  (sizeof(blocks)/sizeof(*blocks)); i++){
+            blocks[i].Deallocate();
+            
+        }
+    }
 };

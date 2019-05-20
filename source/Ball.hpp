@@ -156,4 +156,9 @@ class Ball {
         topSprite.hide = true;
         botSprite.hide = false;
     }
+
+    void Deallocate(){
+        topSprite.Deallocate();
+        botSprite.Deallocate();
+    }
 };
