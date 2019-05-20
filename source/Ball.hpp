@@ -17,6 +17,9 @@ class Ball {
      */
     int state = 0;
 
+    int handleHit = -1;
+    int handleKill = -1;
+
     bool topScreen;
 
     Sprite topSprite;
@@ -64,7 +67,10 @@ class Ball {
                 if(!topScreen && position.second > SCREEN_HEIGHT){
                     state = 0;
                     UI->hp = UI->hp - 1;
-                    mmEffect(SFX_KILL);
+                    if(handleKill != -1){
+                        mmEffectRelease(handleKill);
+                    }
+                    handleKill = mmEffect(SFX_KILL);
                 }
                 break;
 
@@ -105,12 +111,18 @@ class Ball {
         //Horizontal collision (screen)
         if(position.first < 0 || position.first+4 > SCREEN_WIDTH){
             speed.first *= -1;
-            mmEffect(SFX_HIT);
+            if(handleHit != -1){
+                mmEffectRelease(handleHit);
+            }
+            handleHit = mmEffect(SFX_HIT);
         }
         //Top collision (screen)
         if(topScreen && position.second < 0){
             speed.second *= -1;
-            mmEffect(SFX_HIT);
+             if(handleHit != -1){
+                mmEffectRelease(handleHit);
+            }
+            handleHit = mmEffect(SFX_HIT);
         }
 
         //Object collision
@@ -122,7 +134,10 @@ class Ball {
                 position.second + 4 > avatar->position.second){
                 
                 speed.second = std::abs(speed.second) * -1;
-                mmEffect(SFX_HIT);
+                if(handleHit != -1){
+                    mmEffectRelease(handleHit);
+                }
+                handleHit = mmEffect(SFX_HIT);
             }
         }
         else {
@@ -135,7 +150,10 @@ class Ball {
                         position.second + 4 > b.position.second){
                         
                         b.Kill();
-                        mmEffect(SFX_HIT);
+                        if(handleHit != -1){
+                            mmEffectRelease(handleHit);
+                        }
+                        handleHit = mmEffect(SFX_HIT);
 
                         std::pair<int,int> blockCenter = {b.position.first + b.GetWidth(), position.second + 4};
 

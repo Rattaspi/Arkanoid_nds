@@ -48,6 +48,7 @@ uint8_t displayBg = 0;
 uint8_t displayBgFrameCounter = 0;
 int bgMain;
 int bgSub;
+int loseHandle = -1;
 
 bool playing = true;
 bool gameOver = false;
@@ -101,7 +102,6 @@ void Init(){
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
 	//init audio
-	//mmInitDefaultMem((mm_addr)soundbank_bin);
 	mm_ds_system sys;
     // number of modules in your soundbank (defined in output header)
     sys.mod_count = MSL_NSONGS;
@@ -146,10 +146,10 @@ void Init(){
 	dmaCopy((u8*)bigImagesPal, SPRITE_PALETTE_SUB + 10, sizeof(bigImagesPal));
 
 	//load sfx
-	//mmLoadEffect(SFX_HIT);
-	//mmLoadEffect(SFX_KILL);
+	mmLoadEffect(SFX_HIT);
+	mmLoadEffect(SFX_KILL);
 	mmLoadEffect(SFX_BG);
-	//mmLoadEffect(SFX_LOSE);
+	mmLoadEffect(SFX_LOSE);
 
 	//BACKGROUND STUFF
 	bgsp = BackgroundSpritesManager();
@@ -278,10 +278,10 @@ void Quit(){
 
 	mmEffectCancelAll();
 
-	//mmUnloadEffect(SFX_HIT);
-	//mmUnloadEffect(SFX_KILL);
+	mmUnloadEffect(SFX_HIT);
+	mmUnloadEffect(SFX_KILL);
 	mmUnloadEffect(SFX_BG);
-	//mmUnloadEffect(SFX_LOSE);
+	mmUnloadEffect(SFX_LOSE);
 
 	free(soundPtr);
 
@@ -315,7 +315,10 @@ bool CheckWinCondition(){
 
 void Gameover(){
 	gameOver = true;
-	mmEffect(SFX_LOSE);
+	if(loseHandle != -1) {
+		mmEffectRelease(loseHandle);
+	}
+	loseHandle = mmEffect(SFX_LOSE);
 	for(unsigned int i = 0; i < blocks.size(); i++){
 		blocks[i].Kill();
 		//Force redraw to hide them
