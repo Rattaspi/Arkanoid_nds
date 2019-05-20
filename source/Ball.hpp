@@ -43,7 +43,6 @@ class Ball {
 
         speed.first = std::round(rand()%6 - 3);
         speed.second = -1 - std::round(rand()%4);
-        //printf("%d, %d, %d",speed.first, speed.second, rand());
     }
 
     void Update(){
@@ -155,5 +154,10 @@ class Ball {
     void Reset(){
         topSprite.hide = true;
         botSprite.hide = false;
+    }
+
+    void Deallocate(){
+        topSprite.Deallocate();
+        botSprite.Deallocate();
     }
 };

@@ -1,5 +1,6 @@
 #include <nds.h>
 #include <maxmod9.h>
+#include <iostream>
 #include <vector>
 #include <time.h>
 
@@ -9,6 +10,7 @@
 #include "UIManager.hpp"
 #include "BigSprite.hpp"
 #include "BackgroundSpritesManager.hpp"
+#include "MusicManager.hpp"
 
 #include "block.h"
 #include "bigImages.h"
@@ -25,11 +27,11 @@
 int Sprite::mainID = 0;
 int Sprite::subID = 0;
 
-BigSprite cloud;
 Avatar avatar;
 Ball ball;
 UIManager UI;
 BackgroundSpritesManager bgsp;
+MusicManager mm;
 
 BigSprite gameover1, gameover2;
 
@@ -50,23 +52,37 @@ int bgSub;
 bool playing = true;
 bool gameOver = false;
 
+void* soundPtr = nullptr;
+
 void Init();
-void Update();
+void Step();
+void Quit();
 void Gameover();
 void Restart();
+bool CheckWinCondition();
 
 int main() {
-	Init();	
-
-	while(playing) {
-		Update();
+	for (int i = 0; i < 50; i++){
+		Init();
+		for(int j = 0; j < 1; j++){
+			Step();
+		}
+		Quit();
 	}
 
+	Init();	
+	while(playing) {
+		Step();
+	}
+	Quit();
 	return 0;
 }
 
 
 void Init(){
+	Sprite::mainID = 0;
+	Sprite::subID = 0;
+
 	swiWaitForVBlank();
 	srand(time(NULL));
 	displayBg = 0;
@@ -84,11 +100,20 @@ void Init(){
 	oamInit(&oamMain, SpriteMapping_1D_32, false);
 	oamInit(&oamSub, SpriteMapping_1D_32, false);
 
-	//Init console
-	//consoleDemoInit();
-
 	//init audio
-	mmInitDefaultMem((mm_addr)soundbank_bin);
+	//mmInitDefaultMem((mm_addr)soundbank_bin);
+	mm_ds_system sys;
+    // number of modules in your soundbank (defined in output header)
+    sys.mod_count = MSL_NSONGS;
+    // number of samples in your soundbank (defined in output header)
+    sys.samp_count= MSL_NSAMPS;
+    // memory bank, allocate BANKSIZE (or NSONGS+NSAMPS) words
+    soundPtr = sys.mem_bank = (mm_word*)malloc( MSL_BANKSIZE * 4 );
+    // select fifo channel
+    sys.fifo_channel = FIFO_MAXMOD;
+    // initialize maxmod
+    mmInit( &sys );
+    mmSoundBankInMemory( (mm_addr)soundbank_bin);
 
 	//init background
 	setBackdropColor(RGB15(15,15,31));
@@ -114,8 +139,6 @@ void Init(){
 	bgPalettesSequence.push_back((u16*)bgSubPal);
 	bgPalettesSequence.push_back((u16*)bgSub2Pal);
 
-
-	
 	//load the palettes (sprites)
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE, sizeof(blockPal));
 	dmaCopy((u8*)blockPal, SPRITE_PALETTE_SUB, sizeof(blockPal));
@@ -125,6 +148,8 @@ void Init(){
 	//load sfx
 	mmLoadEffect(SFX_HIT);
 	mmLoadEffect(SFX_KILL);
+	mmLoadEffect(SFX_BG);
+	mmLoadEffect(SFX_LOSE);
 
 	//BACKGROUND STUFF
 	bgsp = BackgroundSpritesManager();
@@ -153,22 +178,22 @@ void Init(){
 	int yp = 50;
 	gameover1 = BigSprite(1, xp, yp, true);
 	gameover1.hide = true;
+	gameover1.priority = 0;
 	gameover2 = BigSprite(2, xp+64, yp, true);
 	gameover2.hide = true;
+	gameover2.priority = 0;
+
+	//Init the bg music
+	mm = MusicManager();
+
+	playing = true;
 }
 
-void Update(){
+void Step(){
 	scanKeys();
 
 	int held = keysHeld();
 	int down = keysDown();
-
-	if((down & KEY_UP) && gameOver){
-		Restart();
-	}
-	else if(down & KEY_DOWN){
-		Gameover();
-	}
 
 	if(held & KEY_RIGHT){
 		avatar.MoveRight();
@@ -176,13 +201,19 @@ void Update(){
 	else if(held & KEY_LEFT){
 		avatar.MoveLeft();
 	}
-	else if(held & KEY_A){
+	else if(down & KEY_A){
 		ball.ChangeState(1);
+		if(gameOver){
+			Restart();
+		}
 	}
 
 	if(held & KEY_START){
 		playing = false;
 	}
+
+	//update the background music
+	mm.Update();
 
 	//load the palettes (background)
 	dmaCopy((u16*)bgMainPal, BG_PALETTE, sizeof(bgMainPal));
@@ -214,8 +245,6 @@ void Update(){
 			blocks[i].Draw();
 		}
 
-		cloud.PlaceSprite();
-
 		//Draw the avatar
 		avatar.Draw();
 
@@ -227,12 +256,10 @@ void Update(){
 		UI.Draw();
 
 		//Check end game condition
-		if(UI.hp <= 0){
+		if(UI.hp <= 0 || CheckWinCondition()){
 			gameOver = true;
 			Gameover();
 		}
-	}
-	else {
 	}
 
 	//Draw the background
@@ -246,8 +273,46 @@ void Update(){
 	oamUpdate(&oamSub);
 }
 
+void Quit(){
+	playing = false;
+
+	mmUnloadEffect(SFX_HIT);
+	mmUnloadEffect(SFX_KILL);
+	mmUnloadEffect(SFX_BG);
+	mmUnloadEffect(SFX_LOSE);
+
+	free(soundPtr);
+
+	avatar.Deallocate();
+	ball.Deallocate();
+	UI.Deallocate();
+	bgsp.Deallocate();
+	gameover1.Deallocate();
+	gameover2.Deallocate();
+
+	for(unsigned int i = 0; i < blocks.size(); i++){
+		blocks[i].Deallocate();
+	}
+	blocks.clear();
+
+	bgSequence.clear();
+	bgPalettesSequence.clear();
+
+	DC_FlushAll();
+}
+
+bool CheckWinCondition(){
+	for(unsigned int i = 0; i<blocks.size(); i++){
+		if(!blocks[i].killed){
+			return false;
+		}
+	}
+	return true;
+}
+
 void Gameover(){
 	gameOver = true;
+	mmEffect(SFX_LOSE);
 	for(unsigned int i = 0; i < blocks.size(); i++){
 		blocks[i].Kill();
 		//Force redraw to hide them

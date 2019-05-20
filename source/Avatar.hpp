@@ -45,4 +45,10 @@ public:
         return blocks.size()*8;
     }
 
+    void Deallocate(){
+        for(unsigned int i = 0; i <  blocks.size(); i++){
+            blocks[i].Deallocate();
+        }
+    }
+
 };
