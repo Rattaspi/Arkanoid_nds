@@ -13,10 +13,14 @@ public:
         handle = mmEffect(SFX_BG);
     }
 
+    ~MusicManager(){
+        mmEffectRelease(handle);
+    }
+
     void Update(){
         if(songCounter > SONG_DURATION){
             mmEffectRelease(handle);
-            mmEffect(SFX_BG);
+            handle = mmEffect(SFX_BG);
             songCounter = 0;
         }
         songCounter++;

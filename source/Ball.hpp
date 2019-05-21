@@ -45,7 +45,11 @@ class Ball {
         topScreen = false;
 
         speed.first = std::round(rand()%6 - 3);
-        speed.second = -1 - std::round(rand()%4);
+        speed.second = -2 - std::round(rand()%3);
+        if(speed.first == 0){
+            speed.first = 1;
+        }
+        speed.first = 0;
     }
 
     void Update(){

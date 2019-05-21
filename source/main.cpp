@@ -63,13 +63,14 @@ void Restart();
 bool CheckWinCondition();
 
 int main() {
-	for (int i = 0; i < 50; i++){
-		Init();
-		for(int j = 0; j < 1; j++){
-			Step();
-		}
-		Quit();
-	}
+	//DEBUG TO TEST THE MEMORY LEAKS
+	// for (int i = 0; i < 50; i++){
+	// 	Init();
+	// 	for(int j = 0; j < 1; j++){
+	// 		Step();
+	// 	}
+	// 	Quit();
+	// }
 
 	Init();	
 	while(playing) {
