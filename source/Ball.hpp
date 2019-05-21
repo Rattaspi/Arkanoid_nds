@@ -52,6 +52,11 @@ class Ball {
         speed.first = 0;
     }
 
+    ~Ball(){
+        mmEffectRelease(handleHit);
+        mmEffectRelease(handleKill);
+    }
+
     void Update(){
         switch(state) {
             case 0:

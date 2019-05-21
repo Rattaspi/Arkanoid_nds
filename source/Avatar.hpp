@@ -7,7 +7,6 @@
 class Avatar{
 private:
     std::vector<Sprite> blocks;
-    
 
     int speed = 4;
 

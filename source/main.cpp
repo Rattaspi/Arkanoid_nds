@@ -284,6 +284,10 @@ void Quit(){
 	mmUnloadEffect(SFX_BG);
 	mmUnloadEffect(SFX_LOSE);
 
+	if(loseHandle != -1) {
+		mmEffectRelease(loseHandle);
+	}
+
 	free(soundPtr);
 
 	avatar.Deallocate();
